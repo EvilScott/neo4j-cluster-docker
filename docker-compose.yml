@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  core1: &core
+    image: 'neo4j:enterprise'
+    environment:
+      NEO4J_AUTH: 'none'
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: 'yes'
+      NEO4J_dbms_mode: 'CORE'
+      NEO4J_causal__clustering_minimum__core__cluster__size__at__formation: '3'
+      NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime: '3'
+      NEO4J_causal__clustering_discovery__type: 'DNS'
+      NEO4J_causal__clustering_initial__discovery__members: 'core:5000'
+    networks:
+      cluster:
+        aliases:
+          - 'core'
+    restart: 'always'
+  core2: *core
+  core3:
+    <<: *core
+    ports:
+      - 7474:7474
+      - 7687:7687
+
+  ro1: &ro
+    image: 'neo4j:enterprise'
+    environment:
+      NEO4J_AUTH: 'none'
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: 'yes'
+      NEO4J_dbms_mode: 'READ_REPLICA'
+      NEO4J_causal__clustering_discovery__type: 'DNS'
+      NEO4J_causal__clustering_initial__discovery__members: 'core:5000'
+    networks:
+      cluster:
+        aliases:
+          - 'ro'
+    restart: 'always'
+  ro2: *ro
+  ro3: *ro
+
+networks:
+  cluster:
